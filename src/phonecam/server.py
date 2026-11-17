@@ -107,6 +107,7 @@ def create_app(
                     "device_name": state.virtual_cam.device_name,
                     "is_ready": state.virtual_cam.is_ready,
                     "error_message": state.virtual_cam.error_message,
+                    "warning_message": state.virtual_cam.warning_message,
                     "width": state.virtual_cam.width,
                     "height": state.virtual_cam.height,
                     "fps": state.virtual_cam.fps,
@@ -151,7 +152,17 @@ def create_app(
         logger.info("Phone signaling WebSocket connected")
         try:
             while True:
-                raw = await websocket.receive_text()
+                ws_msg = await websocket.receive()
+                if ws_msg.get("type") == "websocket.disconnect":
+                    break
+
+                if ws_msg.get("bytes") is not None:
+                    state.receiver.handle_ws_jpeg_frame(ws_msg["bytes"])
+                    continue
+
+                raw = ws_msg.get("text")
+                if not raw:
+                    continue
                 msg = json.loads(raw)
                 msg_type = msg.get("type")
 

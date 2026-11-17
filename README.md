@@ -20,9 +20,11 @@ Turn any **iPhone (Safari)** or **Android (Chrome)** into a wireless PC webcam o
 ## Windows Setup
 
 ### 1. Install a Virtual Camera Driver
-Install **one** of the following:
-- **[OBS Studio](https://obsproject.com/)** (recommended — includes OBS Virtual Camera out of the box; you do not need to keep OBS open)
-- **[UnityCapture](https://github.com/schellingb/UnityCapture)**
+- **[UnityCapture](https://github.com/schellingb/UnityCapture)** (**Recommended**): Registers a standalone **Unity Video Capture** webcam device on Windows so you can add your phone as a **Video Capture Device** source *inside* OBS Studio (as well as Zoom, Discord, Teams, and Google Meet).
+  - Download UnityCapture, extract it, and run `Install\Install.bat` as Administrator.
+- **[OBS Studio](https://obsproject.com/)** (Alternative): Includes *OBS Virtual Camera* for Zoom/Discord/Meet, though it cannot be added as a separate input device inside OBS itself.
+
+PhoneCam automatically prefers `unitycapture` on Windows when installed, and falls back to `obs` if not. You can also force a backend with `--backend unitycapture`.
 
 ### 2. Install PhoneCam
 Using `uv` (recommended) or `pip`:

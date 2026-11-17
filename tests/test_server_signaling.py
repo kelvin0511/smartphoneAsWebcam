@@ -48,3 +48,36 @@ def test_auth_verify_and_websocket_rejection():
             ws.send_json({"type": "ping"})
             assert ws.receive_json() == {"type": "pong"}
             ws.send_json({"type": "transform", "rotation": 90, "mirror": True, "paused": True})
+
+
+def test_ws_binary_jpeg_fallback():
+    import io
+    import av
+    import numpy as np
+
+    arr = np.zeros((72, 128, 3), dtype=np.uint8)
+    buf = io.BytesIO()
+    with av.open(buf, "w", format="mjpeg") as container:
+        stream = container.add_stream("mjpeg")
+        stream.width = 128
+        stream.height = 72
+        stream.pix_fmt = "yuvj420p"
+        frame = av.VideoFrame.from_ndarray(arr, format="rgb24")
+        for pkt in stream.encode(frame):
+            container.mux(pkt)
+        for pkt in stream.encode(None):
+            container.mux(pkt)
+    jpeg_bytes = buf.getvalue()
+
+    with _make_client() as client:
+        with client.websocket_connect("/ws/signal?token=test-token-123") as ws:
+            ws.send_bytes(jpeg_bytes)
+            ws.send_json({"type": "ping"})
+            assert ws.receive_json() == {"type": "pong"}
+
+            info = client.get("/api/info").json()
+            assert info["stats"]["frames_received"] >= 1
+            assert info["stats"]["ice_state"] == "ws-fallback"
+            assert info["stats"]["incoming_width"] == 128
+            assert info["stats"]["incoming_height"] == 72
+

@@ -29,6 +29,7 @@ class VirtualCameraOutput:
         self._cam: Any = None
         self.frames_sent: int = 0
         self.error_message: str | None = None
+        self.warning_message: str | None = None
         self.device_name: str = "Mock Virtual Camera" if mock else "Uninitialized"
 
     def open(self) -> None:
@@ -36,10 +37,12 @@ class VirtualCameraOutput:
         if self.mock:
             self.device_name = "Mock Virtual Camera (Headless)"
             self.error_message = None
+            self.warning_message = None
             logger.info("Opened %s (%dx%d @ %dfps)", self.device_name, self.width, self.height, self.fps)
             return
 
         try:
+            import sys
             import pyvirtualcam
 
             kwargs: dict[str, Any] = {
@@ -50,10 +53,27 @@ class VirtualCameraOutput:
             }
             if self.backend:
                 kwargs["backend"] = self.backend
+                self._cam = pyvirtualcam.Camera(**kwargs)
+            elif sys.platform == "win32":
+                # Prefer UnityCapture on Windows so it appears as a standalone webcam
+                # device that can be added as a source inside OBS Studio.
+                try:
+                    self._cam = pyvirtualcam.Camera(backend="unitycapture", **kwargs)
+                except Exception:
+                    self._cam = pyvirtualcam.Camera(**kwargs)
+            else:
+                self._cam = pyvirtualcam.Camera(**kwargs)
 
-            self._cam = pyvirtualcam.Camera(**kwargs)
             self.device_name = getattr(self._cam, "device", "Virtual Camera")
             self.error_message = None
+            if "OBS" in self.device_name and not self.backend:
+                self.warning_message = (
+                    "Using 'OBS Virtual Camera'. To add your phone as a new webcam source "
+                    "inside OBS Studio, install UnityCapture (https://github.com/schellingb/UnityCapture)."
+                )
+                logger.warning(self.warning_message)
+            else:
+                self.warning_message = None
             logger.info(
                 "Opened virtual camera '%s' (%dx%d @ %dfps)",
                 self.device_name,
@@ -66,7 +86,7 @@ class VirtualCameraOutput:
             self.device_name = "Unavailable"
             self.error_message = (
                 f"Could not open virtual camera ({exc}). "
-                "On Windows, install OBS Studio (with OBS Virtual Camera) or UnityCapture."
+                "On Windows, install UnityCapture (recommended for OBS input) or OBS Studio."
             )
             logger.warning(self.error_message)
 

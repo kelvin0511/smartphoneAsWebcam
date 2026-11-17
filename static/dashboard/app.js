@@ -49,12 +49,15 @@
 
       const vc = data.virtual_cam;
       vcamDeviceName.textContent = vc.device_name || "Virtual Camera";
-      if (vc.is_ready) {
-        vcamBanner.className = "vcam-banner";
-        vcamBanner.textContent = `Active: ${vc.device_name} (${vc.width}×${vc.height} @ ${vc.fps}fps)`;
-      } else {
+      if (!vc.is_ready) {
         vcamBanner.className = "vcam-banner error";
         vcamBanner.textContent = vc.error_message || "Virtual camera unavailable.";
+      } else if (vc.warning_message) {
+        vcamBanner.className = "vcam-banner warn";
+        vcamBanner.textContent = vc.warning_message;
+      } else {
+        vcamBanner.className = "vcam-banner";
+        vcamBanner.textContent = `Active: ${vc.device_name} (${vc.width}×${vc.height} @ ${vc.fps}fps)`;
       }
       updateStats(data.stats);
     } catch (err) {

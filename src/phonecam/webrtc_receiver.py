@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import io
 import logging
 import time
 from dataclasses import asdict, dataclass
 from typing import Any, Callable
 
+import av
 from aiortc import RTCConfiguration, RTCIceCandidate, RTCPeerConnection, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp
 
@@ -52,6 +54,42 @@ class WebRTCReceiver:
         self._pc: RTCPeerConnection | None = None
         self._consume_task: asyncio.Task[None] | None = None
         self._privacy_frame = create_privacy_frame(virtual_cam.width, virtual_cam.height)
+        self._ws_window_start: float = time.monotonic()
+        self._ws_window_frames: int = 0
+        self._ws_window_bytes: int = 0
+
+    def handle_ws_jpeg_frame(self, jpeg_bytes: bytes) -> None:
+        """Fallback: decode a JPEG frame sent over WebSocket and feed virtual cam."""
+        self.stats.connected = True
+        self.stats.ice_state = "ws-fallback"
+        self.stats.frames_received += 1
+        self._ws_window_frames += 1
+        self._ws_window_bytes += len(jpeg_bytes)
+
+        if self.transform.paused:
+            self.virtual_cam.send_frame(self._privacy_frame)
+        else:
+            with av.open(io.BytesIO(jpeg_bytes), format="mjpeg") as container:
+                frame = next(container.decode(video=0))
+                rgb = frame.to_ndarray(format="rgb24")
+            self.stats.incoming_height, self.stats.incoming_width = rgb.shape[:2]
+            processed = process_rgb_frame(
+                rgb,
+                target_width=self.virtual_cam.width,
+                target_height=self.virtual_cam.height,
+                transform=self.transform,
+            )
+            self.virtual_cam.send_frame(processed)
+
+        now = time.monotonic()
+        elapsed = now - self._ws_window_start
+        if elapsed >= 1.0:
+            self.stats.fps = round(self._ws_window_frames / elapsed, 1)
+            self.stats.bitrate_kbps = round((self._ws_window_bytes * 8) / (elapsed * 1000), 1)
+            self._ws_window_start = now
+            self._ws_window_frames = 0
+            self._ws_window_bytes = 0
+            self._emit_stats()
 
     async def handle_offer(self, sdp: str, sdp_type: str = "offer") -> dict[str, str]:
         """Accept an SDP offer from the phone and return an SDP answer."""

@@ -33,6 +33,77 @@
   let lastBytesSent = 0;
   let lastStatsTime = 0;
   let statsTimer = null;
+  let webrtcFallbackTimer = null;
+  let wsFallbackTimer = null;
+  let wsFallbackActive = false;
+  const fallbackCanvas = document.createElement("canvas");
+  const fallbackCtx = fallbackCanvas.getContext("2d");
+
+  function stopWsFallback() {
+    wsFallbackActive = false;
+    clearTimeout(webrtcFallbackTimer);
+    clearInterval(wsFallbackTimer);
+    webrtcFallbackTimer = null;
+    wsFallbackTimer = null;
+  }
+
+  function startWsFallback() {
+    if (wsFallbackActive || !ws || ws.readyState !== WebSocket.OPEN) return;
+    wsFallbackActive = true;
+    clearInterval(statsTimer);
+    statusBadge.textContent = "Live (WS)";
+    statusBadge.className = "status-badge live";
+    showToast("Switched to WebSocket stream (firewall/hotspot safe)");
+    sendTransform();
+
+    let sending = false;
+    let frameCount = 0;
+    let bytesCount = 0;
+    let winStart = performance.now();
+
+    const [, , targetFps] = qualitySelect.value.split("x").map(Number);
+    const intervalMs = Math.max(16, Math.round(1000 / Math.min(targetFps || 30, 30)));
+
+    wsFallbackTimer = setInterval(() => {
+      if (!wsFallbackActive || !ws || ws.readyState !== WebSocket.OPEN) {
+        stopWsFallback();
+        return;
+      }
+      if (sending || paused || videoEl.readyState < 2 || videoEl.videoWidth === 0) {
+        return;
+      }
+      if (ws.bufferedAmount > 512 * 1024) {
+        return; // Backpressure guard
+      }
+
+      fallbackCanvas.width = videoEl.videoWidth;
+      fallbackCanvas.height = videoEl.videoHeight;
+      fallbackCtx.drawImage(videoEl, 0, 0);
+      sending = true;
+      fallbackCanvas.toBlob(
+        (blob) => {
+          sending = false;
+          if (!blob || !wsFallbackActive || !ws || ws.readyState !== WebSocket.OPEN) return;
+          ws.send(blob);
+          frameCount += 1;
+          bytesCount += blob.size;
+
+          const now = performance.now();
+          const dt = (now - winStart) / 1000;
+          if (dt >= 1.0) {
+            const fps = Math.round(frameCount / dt);
+            const kbps = Math.round((bytesCount * 8) / (dt * 1000));
+            statsHud.textContent = `${videoEl.videoHeight}p ${fps} fps • ${kbps} kbps`;
+            frameCount = 0;
+            bytesCount = 0;
+            winStart = now;
+          }
+        },
+        "image/jpeg",
+        0.8
+      );
+    }, intervalMs);
+  }
 
   function showToast(msg) {
     toastEl.textContent = msg;
@@ -109,6 +180,7 @@
   }
 
   async function startWebRTC() {
+    stopWsFallback();
     statusBadge.textContent = "Connecting...";
     statusBadge.className = "status-badge";
 
@@ -130,14 +202,25 @@
       pc.onconnectionstatechange = () => {
         if (!pc) return;
         if (pc.connectionState === "connected") {
+          stopWsFallback();
           statusBadge.textContent = "Live";
           statusBadge.className = "status-badge live";
           sendTransform();
-        } else if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
+        } else if (pc.connectionState === "failed") {
+          startWsFallback();
+        } else if (pc.connectionState === "disconnected" && !wsFallbackActive) {
           statusBadge.textContent = "Disconnected";
           statusBadge.className = "status-badge error";
         }
       };
+
+      // If WebRTC UDP ICE cannot connect within 3.5s (e.g., iPhone Hotspot mDNS or Windows Firewall),
+      // automatically switch to binary WebSocket frame streaming over the open WSS connection.
+      webrtcFallbackTimer = setTimeout(() => {
+        if (pc && pc.connectionState !== "connected" && !wsFallbackActive) {
+          startWsFallback();
+        }
+      }, 3500);
 
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
@@ -159,6 +242,7 @@
 
     ws.onclose = (event) => {
       clearInterval(statsTimer);
+      stopWsFallback();
       if (event.code === 4401) {
         statusBadge.textContent = "Invalid Token / PIN";
         statusBadge.className = "status-badge error";
