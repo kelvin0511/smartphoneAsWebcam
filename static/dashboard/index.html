@@ -12,64 +12,67 @@
       <div class="brand">
         <div class="logo-dot"></div>
         <h1>PhoneCam</h1>
-        <span class="badge">LAN Wireless Webcam</span>
+        <span class="badge" data-i18n="badge">LAN Wireless Webcam</span>
       </div>
-      <div id="connection-pill" class="pill pill-idle">Waiting for phone...</div>
+      <div class="header-actions">
+        <button id="lang-toggle-btn" class="lang-btn" type="button">繁體中文</button>
+        <div id="connection-pill" class="pill pill-idle">Waiting for phone...</div>
+      </div>
     </header>
 
     <main class="grid">
       <section class="card qr-card">
-        <h2>1. Connect Your Phone</h2>
-        <p class="muted">Scan this QR code with your iPhone or Android camera on the same Wi-Fi network.</p>
+        <h2 data-i18n="step1Title">1. Connect Your Phone</h2>
+        <p class="muted" data-i18n="step1Desc">Scan this QR code with your iPhone or Android camera on the same Wi-Fi network.</p>
         <div id="qr-container" class="qr-box">Loading QR...</div>
         <div class="url-row">
           <input id="phone-url" type="text" readonly value="" />
-          <button id="copy-url-btn" class="btn">Copy</button>
+          <button id="copy-url-btn" class="btn" data-i18n="copy">Copy</button>
         </div>
         <div class="pin-box">
-          <span class="muted">Manual Pairing PIN:</span>
+          <span class="muted" data-i18n="pinLabel">Manual Pairing PIN:</span>
           <strong id="pairing-pin">------</strong>
         </div>
-        <div class="hint-box">
+        <div class="hint-box" id="https-hint">
           <strong>First-time HTTPS notice:</strong> Because this runs 100% locally without internet, tap
           <em>"Advanced → Proceed"</em> (Android Chrome) or <em>"Show Details → Visit this website"</em> (iPhone Safari).
         </div>
       </section>
 
       <section class="card stats-card">
-        <h2>2. Virtual Webcam &amp; Stream</h2>
+        <h2 data-i18n="step2Title">2. Virtual Webcam &amp; Stream</h2>
         <div id="vcam-banner" class="vcam-banner">Checking virtual camera...</div>
 
         <div class="stats-grid">
           <div class="stat-item">
-            <span class="stat-label">Incoming Resolution</span>
+            <span class="stat-label" data-i18n="statRes">Incoming Resolution</span>
             <span id="stat-res" class="stat-value">—</span>
           </div>
           <div class="stat-item">
-            <span class="stat-label">Live FPS</span>
+            <span class="stat-label" data-i18n="statFps">Live FPS</span>
             <span id="stat-fps" class="stat-value">0.0</span>
           </div>
           <div class="stat-item">
-            <span class="stat-label">Bitrate</span>
+            <span class="stat-label" data-i18n="statBitrate">Bitrate</span>
             <span id="stat-bitrate" class="stat-value">0 kbps</span>
           </div>
           <div class="stat-item">
-            <span class="stat-label">Latency (RTT)</span>
+            <span class="stat-label" data-i18n="statRtt">Latency (RTT)</span>
             <span id="stat-rtt" class="stat-value">0 ms</span>
           </div>
           <div class="stat-item">
-            <span class="stat-label">Frames Received</span>
+            <span class="stat-label" data-i18n="statFrames">Frames Received</span>
             <span id="stat-frames" class="stat-value">0</span>
           </div>
           <div class="stat-item">
-            <span class="stat-label">Transform</span>
+            <span class="stat-label" data-i18n="statTransform">Transform</span>
             <span id="stat-transform" class="stat-value">0°</span>
           </div>
         </div>
 
         <div class="usage-box">
-          <h3>Using in Zoom / Discord / OBS</h3>
-          <p class="muted">
+          <h3 data-i18n="usageTitle">Using in Zoom / Discord / OBS</h3>
+          <p class="muted" id="usage-desc">
             Select <strong id="vcam-device-name">OBS Virtual Camera</strong> as your camera input in Zoom,
             Microsoft Teams, Discord, Google Meet, or OBS Studio.
           </p>

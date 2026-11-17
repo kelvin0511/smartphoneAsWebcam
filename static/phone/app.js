@@ -1,9 +1,78 @@
 (function () {
+  const I18N = {
+    en: {
+      langBtn: "繁中",
+      pinPrompt: "Enter the 6-digit pairing PIN shown on your PC dashboard.",
+      connectBtn: "Connect",
+      invalidPin: "Invalid PIN. Check your PC dashboard.",
+      pausedBadge: "Camera Paused (Privacy Mode)",
+      flipCam: "Flip Cam",
+      rotate: (deg) => `Rotate ${deg}°`,
+      mirrorOn: "Mirror: On",
+      mirrorOff: "Mirror: Off",
+      pause: "Pause",
+      resume: "Resume",
+      dimScreen: "Dim Screen",
+      dimStreaming: "Streaming in Battery-Saver Mode",
+      dimWake: "Tap anywhere to wake screen",
+      connecting: "Connecting...",
+      live: "Live",
+      liveWs: "Live (WS)",
+      disconnected: "Disconnected",
+      reconnecting: "Reconnecting...",
+      invalidToken: "Invalid Token / PIN",
+      camError: "Camera Error",
+      wsFallbackToast: "Switched to WebSocket stream (firewall/hotspot safe)",
+      focusUpdated: "Focus updated",
+      autoFocusActive: "Auto-focus active",
+    },
+    "zh-Hant": {
+      langBtn: "EN",
+      pinPrompt: "請輸入電腦控制台顯示的 6 位數配對 PIN 碼。",
+      connectBtn: "連線",
+      invalidPin: "PIN 碼無效，請確認電腦控制台上的數字。",
+      pausedBadge: "攝影機已暫停（隱私模式）",
+      flipCam: "翻轉鏡頭",
+      rotate: (deg) => `旋轉 ${deg}°`,
+      mirrorOn: "鏡像：開",
+      mirrorOff: "鏡像：關",
+      pause: "暫停",
+      resume: "繼續",
+      dimScreen: "省電暗屏",
+      dimStreaming: "省電模式串流中",
+      dimWake: "點擊螢幕任意處喚醒",
+      connecting: "連線中...",
+      live: "直播中",
+      liveWs: "直播中 (WS)",
+      disconnected: "已斷線",
+      reconnecting: "重新連線中...",
+      invalidToken: "權杖或 PIN 碼無效",
+      camError: "相機錯誤",
+      wsFallbackToast: "已切換至 WebSocket 串流（防火牆／熱點相容）",
+      focusUpdated: "已更新對焦",
+      autoFocusActive: "自動對焦運作中",
+    },
+  };
+
+  function detectLang() {
+    const saved = localStorage.getItem("phonecam_lang");
+    if (saved && I18N[saved]) return saved;
+    const nav = (navigator.language || "").toLowerCase();
+    return nav.startsWith("zh") ? "zh-Hant" : "en";
+  }
+
+  let currentLang = detectLang();
+  function t() {
+    return I18N[currentLang];
+  }
+
   const pinScreen = document.getElementById("pin-screen");
   const cameraScreen = document.getElementById("camera-screen");
   const pinInput = document.getElementById("pin-input");
   const pinSubmitBtn = document.getElementById("pin-submit-btn");
   const pinError = document.getElementById("pin-error");
+  const pinLangBtn = document.getElementById("pin-lang-btn");
+  const camLangBtn = document.getElementById("cam-lang-btn");
 
   const videoEl = document.getElementById("preview");
   const videoStage = document.getElementById("video-stage");
@@ -36,8 +105,41 @@
   let webrtcFallbackTimer = null;
   let wsFallbackTimer = null;
   let wsFallbackActive = false;
+  let statusKey = "connecting";
   const fallbackCanvas = document.createElement("canvas");
   const fallbackCtx = fallbackCanvas.getContext("2d");
+
+  function setStatus(key, cls = "") {
+    statusKey = key;
+    statusBadge.textContent = t()[key] || key;
+    statusBadge.className = cls ? `status-badge ${cls}` : "status-badge";
+  }
+
+  function applyTranslations() {
+    const dict = t();
+    pinLangBtn.textContent = dict.langBtn;
+    camLangBtn.textContent = dict.langBtn;
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const key = el.getAttribute("data-i18n");
+      if (dict[key]) el.textContent = dict[key];
+    });
+    rotateBtn.textContent = dict.rotate(rotation);
+    mirrorBtn.textContent = mirror ? dict.mirrorOn : dict.mirrorOff;
+    pauseBtn.textContent = paused ? dict.resume : dict.pause;
+    statusBadge.textContent = dict[statusKey] || statusBadge.textContent;
+  }
+
+  function toggleLang() {
+    currentLang = currentLang === "en" ? "zh-Hant" : "en";
+    localStorage.setItem("phonecam_lang", currentLang);
+    applyTranslations();
+  }
+
+  pinLangBtn.addEventListener("click", toggleLang);
+  camLangBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleLang();
+  });
 
   function stopWsFallback() {
     wsFallbackActive = false;
@@ -51,9 +153,8 @@
     if (wsFallbackActive || !ws || ws.readyState !== WebSocket.OPEN) return;
     wsFallbackActive = true;
     clearInterval(statsTimer);
-    statusBadge.textContent = "Live (WS)";
-    statusBadge.className = "status-badge live";
-    showToast("Switched to WebSocket stream (firewall/hotspot safe)");
+    setStatus("liveWs", "live");
+    showToast(t().wsFallbackToast);
     sendTransform();
 
     let sending = false;
@@ -181,8 +282,7 @@
 
   async function startWebRTC() {
     stopWsFallback();
-    statusBadge.textContent = "Connecting...";
-    statusBadge.className = "status-badge";
+    setStatus("connecting");
 
     const track = await acquireCamera();
 
@@ -203,14 +303,12 @@
         if (!pc) return;
         if (pc.connectionState === "connected") {
           stopWsFallback();
-          statusBadge.textContent = "Live";
-          statusBadge.className = "status-badge live";
+          setStatus("live", "live");
           sendTransform();
         } else if (pc.connectionState === "failed") {
           startWsFallback();
         } else if (pc.connectionState === "disconnected" && !wsFallbackActive) {
-          statusBadge.textContent = "Disconnected";
-          statusBadge.className = "status-badge error";
+          setStatus("disconnected", "error");
         }
       };
 
@@ -244,11 +342,9 @@
       clearInterval(statsTimer);
       stopWsFallback();
       if (event.code === 4401) {
-        statusBadge.textContent = "Invalid Token / PIN";
-        statusBadge.className = "status-badge error";
+        setStatus("invalidToken", "error");
       } else {
-        statusBadge.textContent = "Reconnecting...";
-        statusBadge.className = "status-badge";
+        setStatus("reconnecting");
         setTimeout(() => {
           if (pc) {
             pc.close();
@@ -326,9 +422,9 @@
         await track.applyConstraints({
           advanced: [{ focusMode: "manual", pointsOfInterest: [{ x, y }] }],
         });
-        showToast("Focus updated");
+        showToast(t().focusUpdated);
       } catch (_err) {
-        showToast("Auto-focus active");
+        showToast(t().autoFocusActive);
       }
     }
   });
@@ -344,14 +440,14 @@
 
   rotateBtn.addEventListener("click", () => {
     rotation = (rotation + 90) % 360;
-    rotateBtn.textContent = `Rotate ${rotation}°`;
+    rotateBtn.textContent = t().rotate(rotation);
     applyPreviewTransform();
     sendTransform();
   });
 
   mirrorBtn.addEventListener("click", () => {
     mirror = !mirror;
-    mirrorBtn.textContent = `Mirror: ${mirror ? "On" : "Off"}`;
+    mirrorBtn.textContent = mirror ? t().mirrorOn : t().mirrorOff;
     mirrorBtn.classList.toggle("active", mirror);
     applyPreviewTransform();
     sendTransform();
@@ -359,7 +455,7 @@
 
   pauseBtn.addEventListener("click", () => {
     paused = !paused;
-    pauseBtn.textContent = paused ? "Resume" : "Pause";
+    pauseBtn.textContent = paused ? t().resume : t().pause;
     pauseBtn.classList.toggle("danger", paused);
     pausedOverlay.classList.toggle("hidden", !paused);
     sendTransform();
@@ -382,8 +478,7 @@
     try {
       await startWebRTC();
     } catch (err) {
-      statusBadge.textContent = "Camera Error";
-      statusBadge.className = "status-badge error";
+      setStatus("camError", "error");
       showToast(err.message);
     }
   }
@@ -400,12 +495,13 @@
     if (res.ok) {
       bootWithAuth(`pin=${encodeURIComponent(pin)}`);
     } else {
-      pinError.textContent = "Invalid PIN. Check your PC dashboard.";
+      pinError.textContent = t().invalidPin;
       pinError.classList.remove("hidden");
     }
   });
 
   // Entrypoint
+  applyTranslations();
   const params = new URLSearchParams(location.search);
   const token = params.get("token");
   if (token) {

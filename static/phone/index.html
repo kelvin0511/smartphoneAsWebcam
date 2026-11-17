@@ -10,10 +10,13 @@
   <!-- PIN Entry Screen (shown only if no ?token= in URL) -->
   <div id="pin-screen" class="screen hidden">
     <div class="pin-card">
-      <h1>PhoneCam</h1>
-      <p>Enter the 6-digit pairing PIN shown on your PC dashboard.</p>
+      <div class="pin-header">
+        <h1>PhoneCam</h1>
+        <button id="pin-lang-btn" class="hud-lang-btn" type="button">繁中</button>
+      </div>
+      <p data-i18n="pinPrompt">Enter the 6-digit pairing PIN shown on your PC dashboard.</p>
       <input id="pin-input" type="tel" inputmode="numeric" maxlength="6" placeholder="000000" />
-      <button id="pin-submit-btn" class="primary-btn">Connect</button>
+      <button id="pin-submit-btn" class="primary-btn" data-i18n="connectBtn">Connect</button>
       <p id="pin-error" class="error-text hidden"></p>
     </div>
   </div>
@@ -24,13 +27,16 @@
       <video id="preview" autoplay playsinline muted></video>
       <div id="focus-ring" class="focus-ring hidden"></div>
       <div id="paused-overlay" class="paused-overlay hidden">
-        <div class="paused-badge">Camera Paused (Privacy Mode)</div>
+        <div class="paused-badge" data-i18n="pausedBadge">Camera Paused (Privacy Mode)</div>
       </div>
 
       <!-- Top HUD -->
       <div class="top-hud">
         <div id="status-badge" class="status-badge">Connecting...</div>
-        <div id="stats-hud" class="stats-hud">— fps • — kbps</div>
+        <div class="hud-right">
+          <div id="stats-hud" class="stats-hud">— fps • — kbps</div>
+          <button id="cam-lang-btn" class="hud-lang-btn" type="button">繁中</button>
+        </div>
       </div>
 
       <!-- Toast message -->
@@ -46,14 +52,14 @@
           <option value="1920x1080x30">1080p • 30fps</option>
           <option value="1920x1080x60">1080p • 60fps</option>
         </select>
-        <button id="flip-cam-btn" class="ctrl-btn">Flip Cam</button>
+        <button id="flip-cam-btn" class="ctrl-btn" data-i18n="flipCam">Flip Cam</button>
         <button id="rotate-btn" class="ctrl-btn">Rotate 0°</button>
       </div>
 
       <div class="control-row">
         <button id="mirror-btn" class="ctrl-btn">Mirror: Off</button>
-        <button id="pause-btn" class="ctrl-btn">Pause</button>
-        <button id="dim-btn" class="ctrl-btn">Dim Screen</button>
+        <button id="pause-btn" class="ctrl-btn" data-i18n="pause">Pause</button>
+        <button id="dim-btn" class="ctrl-btn" data-i18n="dimScreen">Dim Screen</button>
       </div>
     </div>
   </div>
@@ -62,8 +68,8 @@
   <div id="dim-overlay" class="dim-overlay hidden">
     <div class="dim-info">
       <span class="dim-dot"></span>
-      <span>Streaming in Battery-Saver Mode</span>
-      <small>Tap anywhere to wake screen</small>
+      <span data-i18n="dimStreaming">Streaming in Battery-Saver Mode</span>
+      <small data-i18n="dimWake">Tap anywhere to wake screen</small>
     </div>
   </div>
 
