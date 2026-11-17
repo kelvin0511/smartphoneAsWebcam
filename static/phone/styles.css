@@ -1,0 +1,260 @@
+:root {
+  --bg: #05070b;
+  --panel: rgba(17, 24, 39, 0.88);
+  --border: rgba(255, 255, 255, 0.14);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --accent: #3b82f6;
+  --green: #22c55e;
+  --red: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pin-card {
+  width: 100%;
+  max-width: 340px;
+  background: #111827;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+.pin-card h1 {
+  margin: 0 0 8px;
+}
+
+.pin-card p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.pin-card input {
+  width: 100%;
+  text-align: center;
+  font-size: 1.6rem;
+  letter-spacing: 0.25em;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #090d16;
+  color: var(--text);
+  margin: 12px 0 14px;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error-text {
+  color: #fca5a5 !important;
+  margin-top: 10px;
+}
+
+.camera-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.video-stage {
+  position: relative;
+  flex: 1;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.top-hud {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.status-badge,
+.stats-hud {
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.status-badge.live {
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #86efac;
+}
+
+.status-badge.error {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+.focus-ring {
+  position: absolute;
+  width: 68px;
+  height: 68px;
+  border: 2px solid #facc15;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(1.2);
+  pointer-events: none;
+  animation: focusPulse 0.65s ease-out forwards;
+}
+
+@keyframes focusPulse {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.25);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+.paused-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 7, 11, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paused-badge {
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #1f2937;
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.toast {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.78);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+}
+
+.controls-bar {
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  padding: 10px 12px max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.ctrl-btn,
+select {
+  background: #1e293b;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.ctrl-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.ctrl-btn.danger {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.dim-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dim-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.dim-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #166534;
+}

@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phonecam"
+version = "0.1.0"
+description = "Use your iPhone or Android phone as a wireless PC webcam over LAN via WebRTC."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "aiortc>=1.9.0",
+    "av>=12.0.0",
+    "numpy>=1.26.0",
+    "pyvirtualcam>=0.12.0",
+    "cryptography>=42.0.0",
+    "qrcode>=7.4.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "httpx>=0.27.0",
+]
+
+[project.scripts]
+phonecam = "phonecam.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
