@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import logging
+import threading
+import webbrowser
 import uvicorn
 
 from phonecam.cert_manager import ensure_certificates
@@ -32,6 +34,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Run without an OS virtual camera driver (for testing)",
     )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not automatically open the PC dashboard in the browser",
+    )
     return parser.parse_args(argv)
 
 
@@ -55,17 +62,21 @@ def main(argv: list[str] | None = None) -> None:
     auth = SessionAuth.generate()
     cert_path, key_path = ensure_certificates(config.cert_dir, lan_ip)
     phone_url = build_phone_url(lan_ip, config.port, auth.token)
+    dashboard_url = f"https://localhost:{config.port}"
 
     print("\n" + "=" * 60)
     print("  PhoneCam — Wireless Smartphone Webcam")
     print("=" * 60)
-    print(f"  PC Dashboard : https://localhost:{config.port}")
+    print(f"  PC Dashboard : {dashboard_url}")
     print(f"  Phone URL    : {phone_url}")
     print(f"  Pairing PIN  : {auth.pin}")
     print("=" * 60)
     print("\nScan this QR code with your iPhone or Android camera:\n")
     print(generate_qr_ascii(phone_url))
     print("Note: On first visit, accept the self-signed HTTPS certificate in your phone browser.\n")
+
+    if not args.no_browser:
+        threading.Timer(1.5, lambda: webbrowser.open(dashboard_url)).start()
 
     app = create_app(config, lan_ip=lan_ip, auth=auth)
     uvicorn.run(

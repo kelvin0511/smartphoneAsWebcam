@@ -17,6 +17,17 @@ Turn any **iPhone (Safari)** or **Android (Chrome)** into a wireless PC webcam o
 
 ---
 
+## Quick Start (Windows — One Click)
+
+- **Option A — Standalone `.exe` (No Python required):**
+  1. Download `PhoneCam.exe` from the [Releases](../../releases) page.
+  2. Double-click `PhoneCam.exe` — your browser will automatically open the QR code dashboard.
+- **Option B — From Source (`launch.bat`):**
+  1. Download & extract the repository.
+  2. Double-click **`launch.bat`** (automatically installs `uv`, Python dependencies, and opens the dashboard).
+
+---
+
 ## Windows Setup
 
 ### 1. Install a Virtual Camera Driver

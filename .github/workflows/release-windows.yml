@@ -1,0 +1,46 @@
+name: Build & Release Windows EXE
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies and PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          pip install . pyinstaller
+
+      - name: Build PhoneCam.exe
+        run: |
+          pyinstaller --noconfirm --onefile --console ^
+            --name PhoneCam ^
+            --add-data "static;static" ^
+            --collect-all aiortc ^
+            --collect-all av ^
+            --collect-all pyvirtualcam ^
+            --collect-all uvicorn ^
+            --collect-all fastapi ^
+            --collect-all qrcode ^
+            src/phonecam/__main__.py
+
+      - name: Upload PhoneCam.exe to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/PhoneCam.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
