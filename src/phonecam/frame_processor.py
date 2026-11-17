@@ -12,7 +12,7 @@ import numpy as np
 class FrameTransform:
     """Real-time transform state controlled by the phone UI."""
 
-    rotation: int = 0  # Clockwise degrees: 0, 90, 180, 270
+    rotation: int = 90  # Clockwise degrees: 0, 90, 180, 270
     mirror: bool = False
     paused: bool = False
 

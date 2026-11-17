@@ -95,7 +95,7 @@
   let pc = null;
   let localStream = null;
   let facingMode = "environment";
-  let rotation = 0;
+  let rotation = 90;
   let mirror = false;
   let paused = false;
   let wakeLock = null;
@@ -214,10 +214,8 @@
   }
 
   function applyPreviewTransform() {
-    const parts = [];
-    if (mirror) parts.push("scaleX(-1)");
-    if (rotation !== 0) parts.push(`rotate(${rotation}deg)`);
-    videoEl.style.transform = parts.join(" ");
+    // Keep the phone's local preview natural; rotation & mirror apply only to the PC virtual camera.
+    videoEl.style.transform = "";
   }
 
   function sendSignal(payload) {

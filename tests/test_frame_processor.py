@@ -4,6 +4,7 @@ from phonecam.frame_processor import FrameTransform, create_privacy_frame, proce
 
 
 def test_privacy_frame_shape_and_dtype():
+    assert FrameTransform().rotation == 90
     frame = create_privacy_frame(1280, 720)
     assert frame.shape == (720, 1280, 3)
     assert frame.dtype == np.uint8

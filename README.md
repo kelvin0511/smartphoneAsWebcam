@@ -37,6 +37,9 @@ Turn any **iPhone (Safari)** or **Android (Chrome)** into a wireless PC webcam o
 
 PhoneCam automatically prefers `unitycapture` on Windows when installed, and falls back to `obs` if not. You can also force a backend with `--backend unitycapture`.
 
+> **Want the device name in OBS to say `SmartphoneWebcam`?**
+> Windows camera device names come from the driver's Registry `FriendlyName` (Python/`pyvirtualcam` cannot rename a driver at runtime). After installing UnityCapture, you can rename `Unity Video Capture` to `SmartphoneWebcam` in `regedit` under `HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{860BB310-5D01-11d0-BD3B-00A0C911CE86}\Instance\` (search for `Unity Video Capture` and edit its `FriendlyName` value).
+
 ### 2. Install PhoneCam
 Using `uv` (recommended) or `pip`:
 ```bash

@@ -31,7 +31,7 @@ class StreamStats:
     frames_received: int = 0
     paused: bool = False
     mirror: bool = False
-    rotation: int = 0
+    rotation: int = 90
     bitrate_kbps: float = 0.0
     rtt_ms: float = 0.0
 
