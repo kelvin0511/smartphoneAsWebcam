@@ -26,6 +26,7 @@ jobs:
           pip install . pyinstaller
 
       - name: Build PhoneCam.exe
+        shell: cmd
         run: |
           pyinstaller --noconfirm --onefile --console ^
             --name PhoneCam ^
@@ -36,6 +37,7 @@ jobs:
             --collect-all uvicorn ^
             --collect-all fastapi ^
             --collect-all qrcode ^
+            --paths src ^
             src/phonecam/__main__.py
 
       - name: Upload PhoneCam.exe to GitHub Release
